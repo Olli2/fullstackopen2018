@@ -1,66 +1,88 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-const Otsikko = (props) => {
-    return (
-      <div>
-        <h2>{props.kurssi.nimi}</h2>
-      </div>
-    )
-  }
-
-  const Yhteensa = (props) => {
-    return (
-      <div>
-        <p>Yhteensä: {props.osat[0].tehtavia + props.osat[1].tehtavia + props.osat[2].tehtavia}</p>
-      </div>
-    )
-  }
-
-  const Osa = (props) => {
-    return (
+  const Header = (props) => {
+      return (
         <div>
-            <p> {props.osa} </p>
+          <h2>{props.header}</h2>
         </div>
+      )
+    }
+
+  const Statistic = (props) => {
+    return (
+        <tr> 
+          <td>{props.text}</td>
+          <td>{props.val}</td>
+        </tr>
     )
   }
 
-  const Sisalto = (props) => {
+  const Btn = (props) => {
     return (
-      <div>
-        <Osa osa={props.osat[0].nimi}/>
-        <Osa osa={props.osat[1].nimi}/>
-        <Osa osa={props.osat[2].nimi}/>
+      <div> 
+        <button onClick={props.handleClick}> {props.text} </button>
       </div>
     )
   }
 
-  const App = () => {
-    const kurssi = {
-      nimi: 'Half Stack -sovelluskehitys',
-      osat: [
-        {
-          nimi: 'Reactin perusteet',
-          tehtavia: 10
-        },
-        {
-          nimi: 'Tiedonvälitys propseilla',
-          tehtavia: 7
-        },
-        {
-          nimi: 'Komponenttien tila',
-          tehtavia: 14
-        }
-      ]
+  class Statistics extends React.Component {
+
+    render() {
+      const total = this.props.stats.good + this.props.stats.neutral + this.props.stats.bad
+      
+      if(total !== 0) {
+        return (
+          <div>
+          <table>
+            <tbody>
+          <Statistic text="hyvä"         val={this.props.stats.good}/>
+          <Statistic text="neutraali"    val={this.props.stats.neutral}/>
+          <Statistic text="huono"        val={this.props.stats.bad}/>
+          <Statistic text="keskiarvo"    val={(this.props.stats.good - this.props.stats.bad) / total}/>
+          <Statistic text="positiivisia" val={(this.props.stats.good / total * 100)+' %'}/>
+            </tbody>
+          </table>
+          </div>
+        )
+      } else {
+        return <div> Ei yhtään palautetta annettu </div>
+      }
     }
-  return (
-    <div>
-      <Otsikko kurssi={kurssi} />
-      <Sisalto osat={kurssi.osat} />
-      <Yhteensa osat={kurssi.osat}/>
-    </div>
-  )
-}
+  }
+
+  class App extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = {
+        good: 0,
+        neutral: 0,
+        bad: 0,    
+      }
+    }
+
+    setValue = (value, field) => () => {
+      switch(field) {
+        case 'good': this.setState({good: value}); break
+        case 'neutral': this.setState({neutral: value}); break
+        case 'bad': this.setState({bad: value}); break
+        default: console.log('Error adding a value')
+      }
+    }
+    
+  render() {
+    return (
+      <div>
+        <Header header={'anna palautetta'} />
+        <Btn handleClick={this.setValue(this.state.good + 1, 'good')} text="hyvä"/>
+        <Btn handleClick={this.setValue(this.state.neutral + 1, 'neutral')} text="neutraali"/>
+        <Btn handleClick={this.setValue(this.state.bad + 1, 'bad')} text="huono"/>
+        <Header header={'statistiikka'}/>
+        <Statistics stats={this.state}/>
+      </div>
+    )
+  }
+}   
 
 ReactDOM.render(
   <App />,
