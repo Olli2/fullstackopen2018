@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom'
+import axios from 'axios'
 
 const Numero = (props) => {
   return (
@@ -22,15 +23,19 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      persons: [
-        { name: 'Arto Hellas', number: 34 }
-      ],
+      persons: [],
       filter: '',
       newName: '',
       newNumber: '',
     }
+  }
 
-
+  componentDidMount() {
+    axios.get('http://localhost:3001/persons').then(res => {
+      this.setState({
+        persons: res.data
+      })
+    })
   }
 
   handleFilterChange = (event) => {
