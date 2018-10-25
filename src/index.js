@@ -2,15 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom'
 import axios from 'axios'
 
-const Numero = (props) => {
-  return (
-     <tr>
-      <td>{props.info.name}</td>
-      <td>{props.info.number}</td>
-     </tr>
-  )
-}
-
 const Filtteri = (props) => {
   return (
     <div>
@@ -19,23 +10,63 @@ const Filtteri = (props) => {
   )
 }
 
+const InfoArea = (props) => {
+  // console.log(props.countriesToShow);
+  
+  if(props.countriesToShow.length === 1) {
+    const countryData = props.countriesToShow[0]
+    return (
+      <div>
+        <p> {countryData.name} </p>
+        <p>Capital: {countryData.capital}</p>
+        <p>Population: {countryData.population}</p>
+        <img src={countryData.flag}/>
+        
+      </div>
+    )
+  } else if (props.countriesToShow.length === props.originLength){
+    return(
+      <div>
+
+      </div>
+    )
+  } else if(props.countriesToShow.length > 9) {
+    return (
+      <div> 
+        <p> Too many matches, specify another filter </p>
+      </div>
+    )
+  } else {
+    return (
+      <div>
+      { props.countriesToShow.map((a, index) => <p key={a.name+index}> {a.name} </p>) }
+      </div>
+      
+    )
+  }
+  
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      persons: [],
+      countries: [],
       filter: '',
-      newName: '',
-      newNumber: '',
     }
   }
 
-  componentDidMount() {
-    axios.get('http://localhost:3001/persons').then(res => {
-      this.setState({
-        persons: res.data
-      })
+  handleCountriesChange(countries) {
+    this.setState({
+      countries: countries
     })
+  }
+
+  componentDidMount() {
+    axios.get('https://restcountries.eu/rest/v2/all').then(res => {
+      this.handleCountriesChange(res.data)
+    })
+    
   }
 
   handleFilterChange = (event) => {
@@ -44,72 +75,14 @@ class App extends React.Component {
     })
   }
 
-  handleNewNumber = (event) => {
-    this.setState({
-      newNumber: event.target.value
-    })
-  }
-
-  handleNewName = (event) => {
-    this.setState({
-      newName: event.target.value
-    })
-  }
-
-  handleNameSubmit = (event) => {
-    event.preventDefault()
-    if(!this.state.persons.find(a => a.name === this.state.newName)) {
-      const persons = this.state.persons.concat({name: this.state.newName, number: this.state.newNumber})
-      this.setState({
-        persons,
-        newName: '',
-        newNumber: ''
-      })
-    }else {
-      alert(`Nimi '${this.state.newName}' on jo listalla`)
-      this.setState({
-        newName: ''
-      })
-    }
-    
-  }
-
   render() {
-    const personsToShow = 
-      this.state.filter === '' ?
-            this.state.persons :
-            this.state.persons.filter(a => a.name.toLowerCase().includes(this.state.filter.toLowerCase()))
+    const countriesToShow = this.state.countries.filter(a => a.name.toLowerCase().includes(this.state.filter.toLowerCase()))
 
     return (
       <div>
-        <h2>Puhelinluettelo</h2>
+        <h2>Countries</h2>
         <Filtteri filter={this.state.filter} handleFilterChange={this.handleFilterChange}/>
-
-        <form onSubmit={this.handleNameSubmit}>
-          <div>
-            nimi: <input value={this.state.newName} onChange={this.handleNewName} />
-          </div>
-          <div>
-            numero: <input type="number" value={this.state.newNumber} onChange={this.handleNewNumber} />
-          </div>
-          <div>
-            <button type="submit">lisää</button>
-          </div>
-        </form>
-        <h2>Numerot</h2>
-        <div>
-          <table>
-            <thead>
-            <tr>
-              <th> Nimi </th>
-              <th> Numero </th>
-            </tr>
-            </thead>
-            <tbody>
-              {personsToShow.map(e => <Numero key={e.name} info={e}/>)}
-            </tbody>
-          </table>
-        </div>
+        <InfoArea countriesToShow={countriesToShow} originLength={this.state.countries.length}/>
       </div>
     )
   }
