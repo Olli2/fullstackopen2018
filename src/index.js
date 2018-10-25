@@ -11,8 +11,7 @@ const Filtteri = (props) => {
 }
 
 const InfoArea = (props) => {
-  // console.log(props.countriesToShow);
-  
+
   if(props.countriesToShow.length === 1) {
     const countryData = props.countriesToShow[0]
     return (
@@ -39,12 +38,11 @@ const InfoArea = (props) => {
   } else {
     return (
       <div>
-      { props.countriesToShow.map((a, index) => <p key={a.name+index}> {a.name} </p>) }
+      { props.countriesToShow.map((a, index) => <p key={a.name+index} onClick={props.clickCountry(a)}> {a.name} </p>) }
       </div>
       
     )
   }
-  
 }
 
 class App extends React.Component {
@@ -69,6 +67,13 @@ class App extends React.Component {
     
   }
 
+  clickCountry = (obj) => () => {
+    axios.get('https://restcountries.eu/rest/v2/name/'+obj.name+'?fullText=true').then(res => {
+      this.handleCountriesChange(res.data)
+    })
+  }
+
+
   handleFilterChange = (event) => {
     this.setState({
       filter: event.target.value
@@ -82,7 +87,7 @@ class App extends React.Component {
       <div>
         <h2>Countries</h2>
         <Filtteri filter={this.state.filter} handleFilterChange={this.handleFilterChange}/>
-        <InfoArea countriesToShow={countriesToShow} originLength={this.state.countries.length}/>
+        <InfoArea countriesToShow={countriesToShow} originLength={this.state.countries.length} clickCountry={this.clickCountry}/>
       </div>
     )
   }
