@@ -1,6 +1,19 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import personService from './services/persons'
+import './index.css'
+
+const Ilmoitus = ({msg}) => {
+  if (msg === null) {
+    return null
+  }
+  return (
+    <div className="error">
+      {msg}
+    </div>
+  )
+}
+
 
 const Numero = (props) => {
   return (
@@ -28,6 +41,7 @@ class App extends React.Component {
       filter: '',
       newName: '',
       newNumber: '',
+      msg: null,
     }
   }
 
@@ -36,8 +50,10 @@ class App extends React.Component {
       personService.remove(personObject.id)
       const auxPersons = this.state.persons.filter(obj => obj.id !== personObject.id)
       this.setState({
-        persons: auxPersons
+        persons: auxPersons,
+        msg: `Poistettiin ${personObject.name}`
       })
+      this.clearMsg()
   }
   }
 
@@ -51,6 +67,7 @@ class App extends React.Component {
       })
       
   }
+
 
   handleFilterChange = (event) => {
     this.setState({
@@ -70,6 +87,12 @@ class App extends React.Component {
     })
   }
 
+  clearMsg = () => {
+    setTimeout(() => {
+      this.setState({msg: null})
+    }, 4000)
+  }
+
   handleNameSubmit = (event) => {
     event.preventDefault()
     if(!this.state.persons.find(a => a.name === this.state.newName)) {
@@ -80,21 +103,26 @@ class App extends React.Component {
               this.setState({
                 persons: this.state.persons.concat(res),
                 newName: '',
-                newNumber: ''
+                newNumber: '',
+                msg: `Lisättiin ${personObject.name}`
               })
             })
-      
-    }else {
+      this.clearMsg()
+    } else {
       const personObject = this.state.persons.find(a => a.name === this.state.newName)
       const changedPersonObject = {...personObject, number: this.state.newNumber}
 
       if(window.confirm(`${this.state.newName} on jo luettelossa, korvataanko vanha numero uudella?`)) {
-       personService.update(changedPersonObject)
+       personService.update(changedPersonObject).then(updated => {
        const persons = this.state.persons.filter(a => a.id !== changedPersonObject.id).concat(changedPersonObject)
        this.setState({
          persons,
          newName: '',
          newNumber: '',
+         msg: `Päivitettiin ${changedPersonObject.name}`
+       })})
+       .catch(error => {
+          this.setState({msg: `Muutettavan henkilön ${changedPersonObject.name} tiedot on jo poistettu`})
        })
       } else {
         this.setState({
@@ -103,6 +131,7 @@ class App extends React.Component {
         })
       }
 
+      this.clearMsg()
       
     }
     
@@ -117,6 +146,9 @@ class App extends React.Component {
     return (
       <div>
         <h2>Puhelinluettelo</h2>
+
+        <Ilmoitus msg={this.state.msg}/>
+
         <Filtteri filter={this.state.filter} handleFilterChange={this.handleFilterChange}/>
 
         <form onSubmit={this.handleNameSubmit}>
